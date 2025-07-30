@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인프런 강의 검색</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 40px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .search-section {
+            padding: 40px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 300px;
+            padding: 15px 20px;
+            border: 2px solid #e1e1e1;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .max-results {
+            padding: 15px 20px;
+            border: 2px solid #e1e1e1;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+            width: 120px;
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .results-header h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .results-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .course-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .course-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .course-content {
+            padding: 20px;
+        }
+
+        .course-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .course-instructor {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .course-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .course-price {
+            font-weight: 600;
+            color: #e74c3c;
+            font-size: 16px;
+        }
+
+        .course-rating {
+            color: #f39c12;
+            font-size: 14px;
+        }
+
+        .course-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .course-link:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 10px rgba(79, 172, 254, 0.3);
+        }
+
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .no-results h3 {
+            margin-bottom: 10px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .search-section {
+                padding: 30px 20px;
+            }
+
+            .search-form {
+                flex-direction: column;
+            }
+
+            .search-input {
+                min-width: auto;
+            }
+
+            .course-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 인프런 강의 검색</h1>
+            <p>원하는 강의를 쉽고 빠르게 찾아보세요</p>
+        </div>
+
+        <div class="search-section">
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    id="keyword" 
+                    class="search-input" 
+                    placeholder="검색할 강의 키워드를 입력하세요 (예: 파이썬, 자바스크립트, 리액트)"
+                    required
+                >
+                <input 
+                    type="number" 
+                    id="maxResults" 
+                    class="max-results" 
+                    value="20" 
+                    min="1" 
+                    max="50"
+                    title="최대 결과 수"
+                >
+                <button type="submit" class="search-btn" id="searchBtn">
+                    🔍 검색
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>강의 정보를 검색 중입니다...</p>
+            </div>
+
+            <div class="results" id="results">
+                <div class="results-header">
+                    <h2 id="resultsTitle">검색 결과</h2>
+                    <div class="results-info" id="resultsInfo"></div>
+                </div>
+                <div class="course-grid" id="courseGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const keywordInput = document.getElementById('keyword');
+        const maxResultsInput = document.getElementById('maxResults');
+        const searchBtn = document.getElementById('searchBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const resultsTitle = document.getElementById('resultsTitle');
+        const resultsInfo = document.getElementById('resultsInfo');
+        const courseGrid = document.getElementById('courseGrid');
+
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const keyword = keywordInput.value.trim();
+            const maxResults = parseInt(maxResultsInput.value);
+
+            if (!keyword) {
+                alert('검색 키워드를 입력해주세요.');
+                return;
+            }
+
+            // UI 상태 변경
+            searchBtn.disabled = true;
+            searchBtn.textContent = '검색 중...';
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            courseGrid.innerHTML = '';
+
+            try {
+                const response = await fetch(`/search?keyword=${encodeURIComponent(keyword)}&max_results=${maxResults}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || '검색 중 오류가 발생했습니다.');
+                }
+
+                displayResults(data);
+
+            } catch (error) {
+                displayError(error.message);
+            } finally {
+                // UI 상태 복원
+                searchBtn.disabled = false;
+                searchBtn.textContent = '🔍 검색';
+                loading.style.display = 'none';
+            }
+        });
+
+        function displayResults(data) {
+            resultsTitle.textContent = `"${data.keyword}" 검색 결과`;
+            resultsInfo.textContent = `총 ${data.total_results}개의 강의를 찾았습니다.`;
+
+            if (data.courses.length === 0) {
+                courseGrid.innerHTML = `
+                    <div class="no-results">
+                        <h3>검색 결과가 없습니다</h3>
+                        <p>다른 키워드로 검색해보세요.</p>
+                    </div>
+                `;
+            } else {
+                courseGrid.innerHTML = data.courses.map(course => createCourseCard(course)).join('');
+            }
+
+            results.style.display = 'block';
+            results.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function createCourseCard(course) {
+            const title = course.title || '제목 정보 없음';
+            const instructor = course.instructor || '강사 정보 없음';
+            const price = course.price || '가격 정보 없음';
+            const rating = course.rating || '';
+            const url = course.url || '#';
+            const imageUrl = course.image_url || '';
+
+            return `
+                <div class="course-card">
+                    ${imageUrl ? `<img src="${imageUrl}" alt="${title}" class="course-image" onerror="this.style.display='none'">` : '<div class="course-image"></div>'}
+                    <div class="course-content">
+                        <h3 class="course-title">${escapeHtml(title)}</h3>
+                        <p class="course-instructor">👨‍🏫 ${escapeHtml(instructor)}</p>
+                        <div class="course-meta">
+                            <span class="course-price">${escapeHtml(price)}</span>
+                            ${rating ? `<span class="course-rating">⭐ ${escapeHtml(rating)}</span>` : ''}
+                        </div>
+                        ${url !== '#' ? `<a href="${url}" target="_blank" class="course-link">강의 보러가기 →</a>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayError(message) {
+            courseGrid.innerHTML = `
+                <div class="error">
+                    <h3>⚠️ 오류 발생</h3>
+                    <p>${escapeHtml(message)}</p>
+                </div>
+            `;
+            results.style.display = 'block';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 엔터키로 검색
+        keywordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>
