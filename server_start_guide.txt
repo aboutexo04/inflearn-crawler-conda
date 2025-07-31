@@ -1,0 +1,51 @@
+인프런 크롤러 프로젝트 - 정식 서버 실행 가이드
+==================================================
+
+매일 프로젝트 시작 시 실행할 명령어 순서:
+
+1단계: 환경 활성화
+conda activate inflearn-crawler
+
+2단계: 프로젝트 디렉토리로 이동
+cd /Users/seoyeonmun/inflearn-crawler-conda
+
+3단계: 정식 서버 실행 (uvicorn 사용)
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+4단계: 브라우저에서 확인
+http://localhost:8000
+
+5단계: API 문서 확인
+http://localhost:8000/docs
+
+6단계: 서버 종료 (작업 완료 후)
+터미널에서 Ctrl + C를 눌러 서버 종료
+
+==================================================
+
+추가 서버 옵션들:
+
+프로덕션 모드 (reload 없이):
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+다른 포트로 실행:
+uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+
+백그라운드 실행:
+nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > server.log 2>&1 &
+
+서버 상태 확인:
+curl http://localhost:8000/health
+
+==================================================
+
+매일 시작할 때 한 번에 실행하는 명령어:
+cd /Users/seoyeonmun/inflearn-crawler-conda && conda activate inflearn-crawler && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+==================================================
+
+API 테스트 명령어 (새 터미널에서):
+curl "http://localhost:8000/search?keyword=파이썬&max_results=5"
+
+크롤러 직접 테스트:
+python -c "from app.crawler import search_inflearn_courses; result = search_inflearn_courses('파이썬', 3); print(result)" 
